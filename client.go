@@ -13,7 +13,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/tecbiz-ch/nutanix-go-sdk/schema"
 )
 
@@ -138,11 +137,6 @@ func (c *Client) Do(r *http.Request, v interface{}) error {
 }
 
 func checkResponse(r *http.Response) error {
-	logrus.WithFields(logrus.Fields{
-		"status": r.StatusCode,
-		"url":    r.Request.URL,
-	}).Trace("Response")
-
 	if c := r.StatusCode; c >= 200 && c <= 299 && r.Request.Method == http.MethodDelete {
 		return nil
 	}
@@ -261,11 +255,6 @@ func (c *Client) newV3Request(ctx context.Context, method string, url *url.URL, 
 
 	req = req.WithContext(ctx)
 
-	logrus.WithFields(logrus.Fields{
-		"url":    req.URL,
-		"method": req.Method,
-	}).Trace("newV3Request")
-
 	return req, nil
 }
 
@@ -305,11 +294,6 @@ func (c *Client) newV2Request(ctx context.Context, method string, url *url.URL, 
 	c.setHeaders(req)
 
 	req = req.WithContext(ctx)
-
-	logrus.WithFields(logrus.Fields{
-		"url":    req.URL,
-		"method": req.Method,
-	}).Trace("NewV2Request")
 
 	return req, nil
 }
