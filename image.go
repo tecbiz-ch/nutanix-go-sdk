@@ -62,20 +62,6 @@ func (c *ImageClient) All(ctx context.Context) (*schema.ImageListIntent, error) 
 	return c.List(ctx, &schema.DSMetadata{Length: utils.Int64Ptr(itemsPerPage), Offset: utils.Int64Ptr(0)})
 }
 
-func (c *ImageClient) UploadNEU(ctx context.Context, uuid string, fileContents []byte) (*schema.ImageIntent, error) {
-	file := &schema.File{
-		ContentType: mediaTypeUpload,
-		Body:        bytes.NewBuffer(fileContents),
-	}
-
-	err := c.client.requestHelper(ctx, fmt.Sprintf(imageUploadPath, uuid), http.MethodPut, file, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.GetByUUID(ctx, uuid)
-}
-
 // Upload ...
 func (c *ImageClient) Upload(ctx context.Context, uuid string, fileContents []byte) (*schema.ImageIntent, error) {
 
