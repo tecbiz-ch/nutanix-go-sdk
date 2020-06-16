@@ -37,6 +37,7 @@ type Client struct {
 	credentials *Credentials
 	httpClient  *http.Client
 	userAgent   string
+	insecure    bool
 
 	Image    ImageClient
 	Cluster  ClusterClient
@@ -73,6 +74,13 @@ func WithEndpoint(endpoint string) ClientOption {
 	}
 }
 
+// WithInsecure returns a ClientOption that configure the client connection to be insecure
+func WithInsecure() ClientOption {
+	return func(client *Client) {
+		client.insecure = true
+	}
+}
+
 // NewClient creates a new client.
 func NewClient(options ...ClientOption) *Client {
 	client := &Client{
@@ -86,7 +94,7 @@ func NewClient(options ...ClientOption) *Client {
 	client.userAgent = userAgent
 	transCfg := &http.Transport{
 		Proxy:           http.ProxyFromEnvironment,
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, // ignore expired SSL certificates
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: client.insecure},
 	}
 	client.httpClient.Transport = transCfg
 
