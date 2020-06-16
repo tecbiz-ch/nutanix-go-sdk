@@ -21,6 +21,6 @@ jobs:
     - name: Run go lint
       uses: golangci/golangci-lint-action@v1
       with:
-        version: 1.27.0
+        version: v1.26
     - name: Run tests
       run: go test -v ./...
