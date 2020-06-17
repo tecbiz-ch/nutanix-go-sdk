@@ -22,8 +22,8 @@ type ImageClient struct {
 	client *Client
 }
 
-// Get retrieves an image by its ID if the input can be parsed as an integer, otherwise it
-// retrieves an image by its name. If the image does not exist, nil is returned.
+// Get retrieves an image by its ID if the input can be parsed as an uuid, otherwise it
+// retrieves an image by its name
 func (c *ImageClient) Get(ctx context.Context, idOrName string) (*schema.ImageIntent, error) {
 	if utils.IsValidUUID(idOrName) {
 		return c.GetByUUID(ctx, idOrName)
@@ -31,14 +31,14 @@ func (c *ImageClient) Get(ctx context.Context, idOrName string) (*schema.ImageIn
 	return c.GetByName(ctx, idOrName)
 }
 
-// GetByUUID retrieves an image by its UUID. If the image does not exist, nil is returned.
+// GetByUUID retrieves an image by its UUID
 func (c *ImageClient) GetByUUID(ctx context.Context, uuid string) (*schema.ImageIntent, error) {
 	response := new(schema.ImageIntent)
 	err := c.client.requestHelper(ctx, fmt.Sprintf(imageSinglePath, uuid), http.MethodGet, nil, response)
 	return response, err
 }
 
-// GetByName retrieves an image by its name. If the image does not exist, nil is returned.
+// GetByName retrieves an image by its name
 func (c *ImageClient) GetByName(ctx context.Context, name string) (*schema.ImageIntent, error) {
 	images, err := c.List(ctx, &schema.DSMetadata{Filter: fmt.Sprintf("name==%s", name)})
 	if err != nil {
@@ -50,19 +50,19 @@ func (c *ImageClient) GetByName(ctx context.Context, name string) (*schema.Image
 	return images.Entities[0], err
 }
 
-// List returns a list of images for a specific page.
+// List returns a list of images
 func (c *ImageClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.ImageListIntent, error) {
 	response := new(schema.ImageListIntent)
 	err := c.client.listHelper(ctx, imageListPath, opts, response)
 	return response, err
 }
 
-// All returns all images.
+// All returns all images
 func (c *ImageClient) All(ctx context.Context) (*schema.ImageListIntent, error) {
 	return c.List(ctx, &schema.DSMetadata{Length: utils.Int64Ptr(itemsPerPage), Offset: utils.Int64Ptr(0)})
 }
 
-// Upload ...
+// Upload a qcow2
 func (c *ImageClient) Upload(ctx context.Context, uuid string, fileContents []byte) (*schema.ImageIntent, error) {
 
 	file := &schema.File{

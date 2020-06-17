@@ -15,13 +15,12 @@ const (
 	categoryNameListPath = categorySinglePath + "/list"
 )
 
-// CategoryClient is a client for the image API.
+// CategoryClient is a client for the category API
 type CategoryClient struct {
 	client *Client
 }
 
-// Get retrieves an image by its ID if the input can be parsed as an integer, otherwise it
-// retrieves an image by its name. If the image does not exist, nil is returned.
+// Get retrieves an catagory by its name.
 func (c *CategoryClient) Get(ctx context.Context, idOrName string) (*schema.CategoryKeyStatus, error) {
 	if utils.IsValidUUID(idOrName) {
 		return c.GetByUUID(ctx, idOrName)
@@ -29,14 +28,14 @@ func (c *CategoryClient) Get(ctx context.Context, idOrName string) (*schema.Cate
 	return c.GetByName(ctx, idOrName)
 }
 
-// GetByUUID retrieves an image by its UUID. If the image does not exist, nil is returned.
+// GetByUUID retrieves an category by its UUID.
 func (c *CategoryClient) GetByUUID(ctx context.Context, uuid string) (*schema.CategoryKeyStatus, error) {
 	response := new(schema.CategoryKeyStatus)
 	err := c.client.requestHelper(ctx, fmt.Sprintf(categorySinglePath, uuid), "GET", nil, response)
 	return response, err
 }
 
-// GetByName retrieves an image by its name. If the image does not exist, nil is returned.
+// GetByName retrieves an category by its name.
 func (c *CategoryClient) GetByName(ctx context.Context, name string) (*schema.CategoryKeyStatus, error) {
 	categories, err := c.List(ctx, &schema.DSMetadata{Filter: fmt.Sprintf("name==%s", name)})
 	if err != nil {
@@ -48,14 +47,14 @@ func (c *CategoryClient) GetByName(ctx context.Context, name string) (*schema.Ca
 	return categories.Entities[0], err
 }
 
-// List returns a list of images for a specific page.
+// List returns a list of all CategoryKeyStatus
 func (c *CategoryClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.CategoryKeyList, error) {
 	response := new(schema.CategoryKeyList)
 	err := c.client.listHelper(ctx, categoryListPath, opts, response)
 	return response, err
 }
 
-// ListValues returns a list of images for a specific page.
+// ListValues returns a list of schema.CategoryValueList
 func (c *CategoryClient) ListValues(ctx context.Context, name string) (*schema.CategoryValueList, error) {
 	response := new(schema.CategoryValueList)
 	err := c.client.requestHelper(ctx, fmt.Sprintf(categoryNameListPath, name), "POST", &schema.DSMetadata{}, response)
@@ -69,7 +68,7 @@ func (c *CategoryClient) Create(ctx context.Context, createRequest *schema.Categ
 	return response, err
 }
 
-// All returns all CategoryKeyStatus.
+// All returns all CategoryKeyStatus
 func (c *CategoryClient) All(ctx context.Context) (*schema.CategoryKeyList, error) {
 	return c.List(ctx, &schema.DSMetadata{Length: utils.Int64Ptr(itemsPerPage), Offset: utils.Int64Ptr(0)})
 }
