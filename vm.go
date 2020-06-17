@@ -3,12 +3,9 @@ package nutanix
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/google/uuid"
 
 	"github.com/tecbiz-ch/nutanix-go-sdk/internal/utils"
 	"github.com/tecbiz-ch/nutanix-go-sdk/schema"
@@ -25,37 +22,13 @@ const (
 	vmSnapshotPath   = vmSinglePath + "/snapshot"
 )
 
-type MetaData struct {
-	SSHAuthorizedKeyMap map[string]string `json:"public_keys,omitempty"`
-	Hostname            string            `json:"hostname"`
-	UUID                string            `json:"uuid"`
-	AvailabilityZone    string            `json:"availability_zone,omitempty"`
-	Project             string            `json:"project_id,omitempty"`
-}
-
-func (m *MetaData) ToBase64() (string, error) {
-	if m.UUID == "" {
-		uuid, _ := uuid.NewRandom()
-		m.UUID = uuid.String()
-	}
-	j, err := json.Marshal(m)
-	if err != nil {
-		return "", err
-	}
-	return base64.StdEncoding.EncodeToString(j), nil
-}
-
-// VMClient is a client for the vm API.
+// VMClient is a client for the VM API.
 type VMClient struct {
 	client *Client
 }
 
-// VMRevertRequest ...
-type VMRevertRequest struct {
-	VMRecoveryPointUUID *string `json:"vm_recovery_point_uuid"`
-}
-
-// Get ...
+// Get retrieves an vm by its UUID if the input can be parsed as an uuid, otherwise it
+// retrieves an vm by its name
 func (c *VMClient) Get(ctx context.Context, idOrName string) (*schema.VMIntent, error) {
 	if utils.IsValidUUID(idOrName) {
 		return c.GetByUUID(ctx, idOrName)
@@ -63,14 +36,14 @@ func (c *VMClient) Get(ctx context.Context, idOrName string) (*schema.VMIntent, 
 	return c.GetByName(ctx, idOrName)
 }
 
-// GetByUUID retrieves an vm by its UUID. If the vm does not exist, nil is returned.
+// GetByUUID retrieves an vm by its UUID
 func (c *VMClient) GetByUUID(ctx context.Context, uuid string) (*schema.VMIntent, error) {
 	response := new(schema.VMIntent)
 	err := c.client.requestHelper(ctx, fmt.Sprintf(vmSinglePath, uuid), http.MethodGet, nil, response)
 	return response, err
 }
 
-// GetByName retrieves an vm by its name. If the vm does not exist, nil is returned.
+// GetByName retrieves an vm by its name
 func (c *VMClient) GetByName(ctx context.Context, name string) (*schema.VMIntent, error) {
 	vms, err := c.List(ctx, &schema.DSMetadata{Filter: fmt.Sprintf("vm_name==%s", name)})
 	if err != nil {
@@ -115,7 +88,7 @@ func (c *VMClient) Delete(ctx context.Context, uuid string) error {
 }
 
 // RevertToRecoveryPoint ...
-func (c *VMClient) RevertToRecoveryPoint(ctx context.Context, vm *schema.VMIntent, vmRevertRequest *VMRevertRequest) (*v2.Task, error) {
+func (c *VMClient) RevertToRecoveryPoint(ctx context.Context, vm *schema.VMIntent, vmRevertRequest *schema.VMRevertRequest) (*v2.Task, error) {
 	reqBodyData, err := json.Marshal(&vmRevertRequest)
 	if err != nil {
 		return nil, err
@@ -199,6 +172,7 @@ func (c *VMClient) SetPowerState(ctx context.Context, powerState v2.PowerState, 
 	return response, nil
 }
 
+// Clone ...
 func (c *VMClient) Clone(ctx context.Context, sourcevm *schema.VMIntent) (*v2.Task, error) {
 
 	// TODO:

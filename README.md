@@ -22,6 +22,25 @@ import (
 )
 
 func main() {
+
+	configCreds := nutanix.Credentials{
+		Username: "admin",
+		Password: "password",
+	}
+
+	opts := []nutanix.ClientOption{
+		nutanix.WithCredentials(&configCreds),
+		nutanix.WithEndpoint("https://PC"),
+		nutanix.WithInsecure(), // Allow insecure
+	}
+
+	client := nutanix.NewClient(opts...)
+
+        ctx := context.Background()
+	mycluster, err = client.Cluster.Get(ctx, "mycluster")
+
+        list, err = client.VM.All(ctx)
+
 }
 ```
 
