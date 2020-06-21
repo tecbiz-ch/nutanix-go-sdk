@@ -59,7 +59,7 @@ func (c *VMRecoveryPointClient) All(ctx context.Context) (*schema.VMRecoveryPoin
 // Create creates a VMRecoveryPoint
 func (c *VMRecoveryPointClient) Create(ctx context.Context, createRequest *schema.VMRecoveryPointRequest) (*schema.VMRecoveryPointIntent, error) {
 	response := new(schema.VMRecoveryPointIntent)
-	err := c.client.requestHelper(ctx, subnetBasePath, http.MethodPost, createRequest, response)
+	err := c.client.requestHelper(ctx, vmRecoveryPointBasePath, http.MethodPost, createRequest, response)
 	return response, err
 }
 
