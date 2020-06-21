@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/tecbiz-ch/nutanix-go-sdk/internal/utils"
+	"github.com/tecbiz-ch/nutanix-go-sdk/pkg/utils"
 	"github.com/tecbiz-ch/nutanix-go-sdk/schema"
 )
 
