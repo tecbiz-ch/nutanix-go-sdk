@@ -39,13 +39,16 @@ type Client struct {
 	userAgent   string
 	insecure    bool
 
-	Image    ImageClient
-	Cluster  ClusterClient
-	Project  ProjectClient
-	VM       VMClient
-	Subnet   SubnetClient
-	Category CategoryClient
-	Task     TaskClient
+	Image            ImageClient
+	Cluster          ClusterClient
+	Project          ProjectClient
+	VM               VMClient
+	Subnet           SubnetClient
+	Category         CategoryClient
+	Task             TaskClient
+	Snapshot         SnapshotClient
+	AvailabilityZone AvailabilityZoneClient
+	VMRecoveryPoint  VMRecoveryPointClient
 }
 
 // Credentials needed username and password
@@ -105,6 +108,9 @@ func NewClient(options ...ClientOption) *Client {
 	client.Subnet = SubnetClient{client: client}
 	client.Category = CategoryClient{client: client}
 	client.Task = TaskClient{client: client}
+	client.Snapshot = SnapshotClient{client: client}
+	client.AvailabilityZone = AvailabilityZoneClient{client: client}
+	client.VMRecoveryPoint = VMRecoveryPointClient{client: client}
 	return client
 }
 
