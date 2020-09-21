@@ -18,8 +18,6 @@ import (
 
 const (
 	libraryVersion         = "v3"
-	defaulthttps           = "https://%s"
-	defaultBaseURL         = "%s:9440/"
 	absolutePath           = "api/nutanix/" + libraryVersion
 	defaultV2BaseURL       = "PrismGateway/services/rest/v2.0"
 	userAgent              = "nutanix/" + "cmd.Version"
@@ -68,12 +66,13 @@ func WithCredentials(cred *Credentials) ClientOption {
 func WithEndpoint(endpoint string) ClientOption {
 	return func(client *Client) {
 		passedURL := endpoint
+
 		// Required because url.Parse returns an empty string for the hostname if there was no schema
-		if !strings.HasPrefix(passedURL, "https://") {
+		if !strings.HasPrefix(passedURL, "https://") || !strings.HasPrefix(passedURL, "http://") {
 			passedURL = "https://" + passedURL
 		}
-		client.baseURL, _ = url.Parse(fmt.Sprintf(defaultBaseURL, passedURL))
 
+		client.baseURL, _ = url.Parse(passedURL)
 	}
 }
 
@@ -233,8 +232,8 @@ func (c *Client) NewV3PERequest(ctx context.Context, method string, clusterUUID 
 	if err != nil {
 		return nil, err
 	}
-	apiEndpoint := fmt.Sprintf(defaulthttps, cluster.Spec.Resources.Network.ExternalIP)
-	urlEndpoint, _ := url.Parse(fmt.Sprintf(defaultBaseURL, apiEndpoint))
+
+	urlEndpoint, _ := url.Parse(fmt.Sprintf("%s://%s:%s", c.baseURL.Scheme, cluster.Spec.Resources.Network.ExternalIP, c.baseURL.Port()))
 
 	url := urlEndpoint.ResolveReference(rel)
 	return c.newV3Request(ctx, method, url, body)
@@ -282,8 +281,8 @@ func (c *Client) NewV2PERequest(ctx context.Context, method string, clusterUUID 
 	if err != nil {
 		return nil, err
 	}
-	apiEndpoint := fmt.Sprintf(defaulthttps, cluster.Spec.Resources.Network.ExternalIP)
-	urlEndpoint, _ := url.Parse(fmt.Sprintf(defaultBaseURL, apiEndpoint))
+
+	urlEndpoint, _ := url.Parse(fmt.Sprintf("%s://%s:%s", c.baseURL.Scheme, cluster.Spec.Resources.Network.ExternalIP, c.baseURL.Port()))
 
 	url := urlEndpoint.ResolveReference(rel)
 	return c.newV2Request(ctx, method, url, body)
