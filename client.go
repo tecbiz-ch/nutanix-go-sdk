@@ -37,7 +37,7 @@ type Client struct {
 	credentials *Credentials
 	httpClient  *http.Client
 	userAgent   string
-	insecure    bool
+	skipVerify  bool
 
 	Image            ImageClient
 	Cluster          ClusterClient
@@ -77,10 +77,10 @@ func WithEndpoint(endpoint string) ClientOption {
 	}
 }
 
-// WithInsecure returns a ClientOption that configure the client connection to be insecure
-func WithInsecure() ClientOption {
+// WithSkipVerify returns a ClientOption that configure the client connection to not verify https connectins
+func WithSkipVerify() ClientOption {
 	return func(client *Client) {
-		client.insecure = true
+		client.skipVerify = true
 	}
 }
 
@@ -97,7 +97,7 @@ func NewClient(options ...ClientOption) *Client {
 	client.userAgent = userAgent
 	transCfg := &http.Transport{
 		Proxy:           http.ProxyFromEnvironment,
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: client.insecure},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: client.skipVerify},
 	}
 	client.httpClient.Transport = transCfg
 
