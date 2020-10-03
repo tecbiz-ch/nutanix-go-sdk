@@ -18,8 +18,6 @@ import (
 
 const (
 	libraryVersion         = "v3"
-	defaulthttps           = "https://%s"
-	defaultBaseURL         = "%s:9440/"
 	absolutePath           = "api/nutanix/" + libraryVersion
 	defaultV2BaseURL       = "PrismGateway/services/rest/v2.0"
 	userAgent              = "nutanix/" + "cmd.Version"
@@ -37,7 +35,7 @@ type Client struct {
 	credentials *Credentials
 	httpClient  *http.Client
 	userAgent   string
-	insecure    bool
+	skipVerify  bool
 
 	Image            ImageClient
 	Cluster          ClusterClient
@@ -68,19 +66,20 @@ func WithCredentials(cred *Credentials) ClientOption {
 func WithEndpoint(endpoint string) ClientOption {
 	return func(client *Client) {
 		passedURL := endpoint
+
 		// Required because url.Parse returns an empty string for the hostname if there was no schema
-		if !strings.HasPrefix(passedURL, "https://") {
+		if !strings.HasPrefix(passedURL, "https://") || !strings.HasPrefix(passedURL, "http://") {
 			passedURL = "https://" + passedURL
 		}
-		client.baseURL, _ = url.Parse(fmt.Sprintf(defaultBaseURL, passedURL))
 
+		client.baseURL, _ = url.Parse(passedURL)
 	}
 }
 
-// WithInsecure returns a ClientOption that configure the client connection to be insecure
-func WithInsecure() ClientOption {
+// WithSkipVerify returns a ClientOption that configure the client connection to not verify https connectins
+func WithSkipVerify() ClientOption {
 	return func(client *Client) {
-		client.insecure = true
+		client.skipVerify = true
 	}
 }
 
@@ -97,7 +96,7 @@ func NewClient(options ...ClientOption) *Client {
 	client.userAgent = userAgent
 	transCfg := &http.Transport{
 		Proxy:           http.ProxyFromEnvironment,
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: client.insecure},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: client.skipVerify},
 	}
 	client.httpClient.Transport = transCfg
 
@@ -233,8 +232,8 @@ func (c *Client) NewV3PERequest(ctx context.Context, method string, clusterUUID 
 	if err != nil {
 		return nil, err
 	}
-	apiEndpoint := fmt.Sprintf(defaulthttps, cluster.Spec.Resources.Network.ExternalIP)
-	urlEndpoint, _ := url.Parse(fmt.Sprintf(defaultBaseURL, apiEndpoint))
+
+	urlEndpoint, _ := url.Parse(fmt.Sprintf("%s://%s:%s", c.baseURL.Scheme, cluster.Spec.Resources.Network.ExternalIP, c.baseURL.Port()))
 
 	url := urlEndpoint.ResolveReference(rel)
 	return c.newV3Request(ctx, method, url, body)
@@ -282,8 +281,8 @@ func (c *Client) NewV2PERequest(ctx context.Context, method string, clusterUUID 
 	if err != nil {
 		return nil, err
 	}
-	apiEndpoint := fmt.Sprintf(defaulthttps, cluster.Spec.Resources.Network.ExternalIP)
-	urlEndpoint, _ := url.Parse(fmt.Sprintf(defaultBaseURL, apiEndpoint))
+
+	urlEndpoint, _ := url.Parse(fmt.Sprintf("%s://%s:%s", c.baseURL.Scheme, cluster.Spec.Resources.Network.ExternalIP, c.baseURL.Port()))
 
 	url := urlEndpoint.ResolveReference(rel)
 	return c.newV2Request(ctx, method, url, body)
