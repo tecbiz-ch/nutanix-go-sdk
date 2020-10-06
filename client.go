@@ -68,7 +68,7 @@ func WithEndpoint(endpoint string) ClientOption {
 		passedURL := endpoint
 
 		// Required because url.Parse returns an empty string for the hostname if there was no schema
-		if !strings.HasPrefix(passedURL, "https://") || !strings.HasPrefix(passedURL, "http://") {
+		if !strings.HasPrefix(passedURL, "https://") && !strings.HasPrefix(passedURL, "http://") {
 			passedURL = "https://" + passedURL
 		}
 
