@@ -76,6 +76,13 @@ func WithEndpoint(endpoint string) ClientOption {
 	}
 }
 
+// WithHTTPClient allows to specify a custom http client
+func WithHTTPClient(httpClient *http.Client) ClientOption {
+	return func(client *Client) {
+		client.httpClient = httpClient
+	}
+}
+
 // WithSkipVerify returns a ClientOption that configure the client connection to not verify https connectins
 func WithSkipVerify() ClientOption {
 	return func(client *Client) {
@@ -85,12 +92,14 @@ func WithSkipVerify() ClientOption {
 
 // NewClient creates a new client.
 func NewClient(options ...ClientOption) *Client {
-	client := &Client{
-		httpClient: &http.Client{},
-	}
+	client := &Client{}
 
 	for _, option := range options {
 		option(client)
+	}
+
+	if client.httpClient == nil {
+		client.httpClient = &http.Client{}
 	}
 
 	client.userAgent = userAgent
