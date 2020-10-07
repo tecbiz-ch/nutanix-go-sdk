@@ -252,17 +252,19 @@ func (c *Client) newV3Request(ctx context.Context, method string, url *url.URL, 
 	var contentBody io.Reader
 	var contentType string
 
-	switch b := body.(type) {
-	case *schema.File:
-		contentType = b.ContentType
-		contentBody = b.Body
-	default:
-		buf, err := json.Marshal(body)
-		if err != nil {
-			return nil, err
+	if body != nil {
+		switch b := body.(type) {
+		case *schema.File:
+			contentType = b.ContentType
+			contentBody = b.Body
+		default:
+			buf, err := json.Marshal(body)
+			if err != nil {
+				return nil, err
+			}
+			contentType = mediaTypeJSON
+			contentBody = bytes.NewReader(buf)
 		}
-		contentType = mediaTypeJSON
-		contentBody = bytes.NewReader(buf)
 	}
 
 	req, err := http.NewRequest(method, url.String(), contentBody)
