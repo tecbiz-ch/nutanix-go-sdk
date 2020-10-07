@@ -7,23 +7,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/tecbiz-ch/nutanix-go-sdk/schema"
 )
 
 const (
-	libraryVersion         = "v3"
-	absolutePath           = "api/nutanix/" + libraryVersion
-	defaultV2BaseURL       = "PrismGateway/services/rest/v2.0"
-	userAgent              = "nutanix/" + "cmd.Version"
-	itemsPerPage     int64 = 500
-	mediaTypeJSON          = "application/json"
-	mediaTypeUpload        = "application/octet-stream"
+	libraryVersion             = "v3"
+	absolutePath               = "api/nutanix/" + libraryVersion
+	defaultV2BaseURL           = "PrismGateway/services/rest/v2.0"
+	userAgent                  = "nutanix/" + "cmd.Version"
+	itemsPerPage         int64 = 500
+	mediaTypeJSON              = "application/json"
+	mediaTypeUpload            = "application/octet-stream"
+	ResponseMaxSizeBytes       = 10 * 1024 * 1024
 )
 
 // ClientOption ...
@@ -135,63 +136,33 @@ func (c *Client) Do(r *http.Request, v interface{}) error {
 		}
 	}()
 
-	err = checkResponse(resp)
-	if err != nil {
-		return err
-	}
-	if v != nil {
-
-		if w, ok := v.(io.Writer); ok {
-			_, err = io.Copy(w, resp.Body)
-			if err != nil {
-				fmt.Printf("Error io.Copy %s", err)
-				return err
-			}
-		} else {
-			err = json.NewDecoder(resp.Body).Decode(v)
-			if err != nil {
-				return fmt.Errorf("error unmarshalling json: %s", err)
-			}
-		}
-	}
-
-	return err
-}
-
-func checkResponse(r *http.Response) error {
-	if c := r.StatusCode; c >= 200 && c <= 299 && r.Request.Method == http.MethodDelete {
+	if c := resp.StatusCode; c >= 200 && c <= 299 && resp.Request.Method == http.MethodDelete {
 		return nil
 	}
 
-	buf, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return err
-	}
-
-	if r.StatusCode >= 500 || r.StatusCode == 401 || r.StatusCode == 404 {
-		return fmt.Errorf("statusCode: %d, response: %s", r.StatusCode, string(buf))
-	}
-
-	data := ioutil.NopCloser(bytes.NewBuffer(buf))
-
-	r.Body = data
-
-	// if has entities -> return nil
-	// if has message_list -> check_error["state"]
-	// if has status -> check_error["status.state"]
-	if len(buf) == 0 {
-		return nil
+	if c := resp.StatusCode; c >= 500 || c == 401 || c == 404 {
+		return fmt.Errorf("statusCode: %d", c)
 	}
 
 	var res map[string]interface{}
-
-	err = json.Unmarshal(buf, &res)
+	err = json.NewDecoder(io.LimitReader(resp.Body, ResponseMaxSizeBytes)).Decode(&res)
 	if err != nil {
-		return fmt.Errorf("unmarshalling error response %s", err)
+		return err
+	}
+	if err = parseError(res); err != nil {
+		return err
 	}
 
-	errRes := &schema.ErrorResponse{}
+	err = mapstructure.Decode(res, &v)
+	return err
+}
 
+func parseError(res map[string]interface{}) error {
+	// if has entities -> return nil
+	// if has message_list -> check_error["state"]
+	// if has status -> check_error["status.state"]
+	var err error
+	errRes := &schema.ErrorResponse{}
 	if status, ok := res["status"]; ok {
 		_, sok := status.(string)
 		if sok {
