@@ -315,6 +315,9 @@ func (c *Client) newV2Request(ctx context.Context, method string, url *url.URL, 
 	}
 	c.setHeaders(req)
 
+	req.Header.Set("Content-Type", mediaTypeJSON)
+	req.Header.Set("Accept", mediaTypeJSON)
+
 	req = req.WithContext(ctx)
 
 	return req, nil
