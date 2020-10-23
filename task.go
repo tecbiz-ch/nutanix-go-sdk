@@ -51,7 +51,7 @@ func (c *TaskClient) GetByName(ctx context.Context, name string) (*schema.Task, 
 // List returns a list of tasks for a specific page.
 func (c *TaskClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.TaskListIntent, error) {
 	response := new(schema.TaskListIntent)
-	err := c.client.listHelper(ctx, taskListPath, opts, response)
+	err := c.client.requestHelper(ctx, taskListPath, http.MethodPost, opts, response)
 	return response, err
 }
 

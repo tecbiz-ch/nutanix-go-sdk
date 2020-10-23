@@ -8,11 +8,15 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
-	"reflect"
+	"os"
 	"strings"
+	"time"
 
+	"github.com/pkg/errors"
 	"github.com/tecbiz-ch/nutanix-go-sdk/schema"
 )
 
@@ -36,6 +40,7 @@ type Client struct {
 	httpClient  *http.Client
 	userAgent   string
 	skipVerify  bool
+	debugWriter io.Writer
 
 	Image            ImageClient
 	Cluster          ClusterClient
@@ -90,6 +95,13 @@ func WithSkipVerify() ClientOption {
 	}
 }
 
+// WithDebugWriter configure a custom writer to debug request and responses
+func WithDebugWriter(debugWriter io.Writer) ClientOption {
+	return func(client *Client) {
+		client.debugWriter = debugWriter
+	}
+}
+
 // NewClient creates a new client.
 func NewClient(options ...ClientOption) *Client {
 	client := &Client{}
@@ -103,10 +115,22 @@ func NewClient(options ...ClientOption) *Client {
 	}
 
 	client.userAgent = userAgent
+
 	transCfg := &http.Transport{
-		Proxy:           http.ProxyFromEnvironment,
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: client.skipVerify},
+		Proxy:                 http.ProxyFromEnvironment,
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: client.skipVerify},
+		MaxConnsPerHost:       1000,
+		MaxIdleConns:          100,
+		ForceAttemptHTTP2:     true,
+		ExpectContinueTimeout: 1 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		DialContext: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+			DualStack: true,
+		}).DialContext,
 	}
+
 	client.httpClient.Transport = transCfg
 
 	client.Image = ImageClient{client: client}
@@ -124,9 +148,31 @@ func NewClient(options ...ClientOption) *Client {
 
 // Do performs request passed
 func (c *Client) Do(r *http.Request, v interface{}) error {
+	if c.debugWriter != nil {
+		dumpReq, err := httputil.DumpRequestOut(r, true)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stdout, "Request:\n%s\n\n", dumpReq)
+	}
+
 	resp, err := c.httpClient.Do(r)
 	if err != nil {
+		select {
+		case <-r.Context().Done():
+			return r.Context().Err()
+		default:
+		}
+
 		return err
+	}
+
+	if c.debugWriter != nil {
+		dumpResp, err := httputil.DumpResponse(resp, true)
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stdout, "Response:\n%s\n\n", dumpResp)
 	}
 
 	defer func() {
@@ -140,17 +186,12 @@ func (c *Client) Do(r *http.Request, v interface{}) error {
 		return err
 	}
 	if v != nil {
-
 		if w, ok := v.(io.Writer); ok {
 			_, err = io.Copy(w, resp.Body)
-			if err != nil {
-				fmt.Printf("Error io.Copy %s", err)
-				return err
-			}
 		} else {
 			err = json.NewDecoder(resp.Body).Decode(v)
-			if err != nil {
-				return fmt.Errorf("error unmarshalling json: %s", err)
+			if err == io.EOF {
+				err = nil // ignore EOF errors caused by empty response body
 			}
 		}
 	}
@@ -187,7 +228,7 @@ func checkResponse(r *http.Response) error {
 
 	err = json.Unmarshal(buf, &res)
 	if err != nil {
-		return fmt.Errorf("unmarshalling error response %s", err)
+		return errors.Wrap(err, "unmarshalling error response")
 	}
 
 	errRes := &schema.ErrorResponse{}
@@ -267,7 +308,7 @@ func (c *Client) newV3Request(ctx context.Context, method string, url *url.URL, 
 		}
 	}
 
-	req, err := http.NewRequest(method, url.String(), contentBody)
+	req, err := http.NewRequestWithContext(ctx, method, url.String(), contentBody)
 	if err != nil {
 		return nil, err
 	}
@@ -331,187 +372,6 @@ func fillStruct(data map[string]interface{}, result interface{}) error {
 		return err
 	}
 	return json.Unmarshal(j, result)
-}
-
-func (c *Client) listHelper(ctx context.Context, path string, opts *schema.DSMetadata, i interface{}) error {
-	err := c.requestHelper(ctx, path, http.MethodPost, opts, i)
-	if err != nil {
-		return err
-	}
-	switch v := i.(type) {
-	case *schema.VMRecoveryPointListIntent:
-		newList := new(schema.VMRecoveryPointListIntent)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-	case *schema.VMListIntent:
-		newList := new(schema.VMListIntent)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-	case *schema.ImageListIntent:
-		newList := new(schema.ImageListIntent)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-	case *schema.CategoryKeyList:
-		newList := new(schema.CategoryKeyList)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-	case *schema.ProjectListIntent:
-		newList := new(schema.ProjectListIntent)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-	case *schema.ClusterListIntent:
-		newList := new(schema.ClusterListIntent)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-	case *schema.SubnetListIntent:
-		newList := new(schema.SubnetListIntent)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-	case *schema.AvailabilityZoneListIntent:
-		newList := new(schema.AvailabilityZoneListIntent)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-	case *schema.VirtualNetworkListIntent:
-		newList := new(schema.VirtualNetworkListIntent)
-		totalEntities := v.Metadata.TotalMatches
-		offset := v.Metadata.Offset
-		remaining := totalEntities
-		if totalEntities > itemsPerPage {
-			for hasNext(&remaining) {
-				opts.Offset = &offset
-				err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-				if err != nil {
-					return err
-				}
-				v.Entities = append(v.Entities, newList.Entities...)
-				offset += itemsPerPage
-			}
-		}
-
-	case *schema.TaskListIntent:
-		return nil
-		// No Pageination for now
-		/*
-			newList := new(schema.TaskListIntent)
-			totalEntities := v.Metadata.TotalMatches
-			offset := v.Metadata.Offset
-			remaining := totalEntities
-			 		if totalEntities > itemsPerPage {
-				for hasNext(&remaining) {
-					opts.Offset = &offset
-					err := c.requestHelper(ctx, path, http.MethodPost, opts, newList)
-					if err != nil {
-						return err
-					}
-					v.Entities = append(v.Entities, newList.Entities...)
-					offset += itemsPerPage
-				}
-			} */
-	default:
-		return fmt.Errorf("type not supported %v", reflect.ValueOf(v).Elem().Type())
-	}
-	return nil
-}
-
-func hasNext(ri *int64) bool {
-	*ri -= itemsPerPage
-	return *ri >= (0 - itemsPerPage)
 }
 
 func (c *Client) requestHelper(ctx context.Context, path, method string, request interface{}, output interface{}) error {

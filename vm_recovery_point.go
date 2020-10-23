@@ -47,7 +47,7 @@ func (c *VMRecoveryPointClient) GetByName(ctx context.Context, name string) (*sc
 // List returns a list of VMRecoveryPoints
 func (c *VMRecoveryPointClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.VMRecoveryPointListIntent, error) {
 	response := new(schema.VMRecoveryPointListIntent)
-	err := c.client.listHelper(ctx, vmRecoveryPointListPath, opts, response)
+	err := c.client.requestHelper(ctx, vmRecoveryPointListPath, http.MethodPost, opts, response)
 	return response, err
 }
 

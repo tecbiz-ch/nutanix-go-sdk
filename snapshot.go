@@ -128,13 +128,11 @@ func (c *SnapshotClient) Create(ctx context.Context, name string, vm *schema.VMI
 		return nil, err
 	}
 
-	req, err := c.client.NewV2PERequest(ctx, http.MethodPost, vm.Spec.ClusterReference.UUID, fmt.Sprintf(vmSnapshotv2VMSinglePath, vm.Metadata.UUID), bytes.NewReader(reqBodyData))
+	req, err := c.client.NewV2PERequest(ctx, http.MethodPost, vm.Spec.ClusterReference.UUID, vmSnapshotv2Path, bytes.NewReader(reqBodyData))
 	if err != nil {
 		return nil, err
 	}
-
 	response := new(v2.Task)
-
 	err = c.client.Do(req, &response)
 	if err != nil {
 		return nil, err

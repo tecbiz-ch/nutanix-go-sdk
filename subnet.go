@@ -51,7 +51,7 @@ func (c *SubnetClient) GetByName(ctx context.Context, name string) (*schema.Subn
 // List returns a list of subnets for a specific page.
 func (c *SubnetClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.SubnetListIntent, error) {
 	response := new(schema.SubnetListIntent)
-	err := c.client.listHelper(ctx, subnetListPath, opts, response)
+	err := c.client.requestHelper(ctx, subnetListPath, http.MethodPost, opts, response)
 	return response, err
 }
 
