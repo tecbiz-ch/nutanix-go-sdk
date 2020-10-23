@@ -57,7 +57,7 @@ func (c *SnapshotClient) GetByUUID(ctx context.Context, uuid string, vm *schema.
 // GetByName retrieves an vm by its name. If the vm does not exist, nil is returned.
 func (c *SnapshotClient) GetByName(ctx context.Context, name string, vm *schema.VMIntent) (*v2.SnapshotSpec, error) {
 	_ = fmt.Sprintf(vmSnapshotv2SinglePath, vm.Metadata.UUID)
-	//filter := &v2.Metadata{FilterCriteria: utils.StringPtr(fmt.Sprintf("name==%s", name))}
+	// filter := &v2.Metadata{FilterCriteria: utils.StringPtr(fmt.Sprintf("name==%s", name))}
 	filter := &v2.Metadata{}
 
 	list, err := c.List(ctx, filter, vm)

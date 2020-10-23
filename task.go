@@ -57,10 +57,10 @@ func (c *TaskClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema
 
 // All returns all tasks.
 func (c *TaskClient) All(ctx context.Context) (*schema.TaskListIntent, error) {
-	//now := time.Now().Add(-41000 * time.Hour)
-	//nanos := now.UTC().UnixNano()
-	//pp.Println(fmt.Sprintf("last_updated_time_usecs=gt=%d", nanos))
-	//TODO: How to query the latest tasks based ob Status or Time created?
+	// now := time.Now().Add(-41000 * time.Hour)
+	// nanos := now.UTC().UnixNano()
+	// pp.Println(fmt.Sprintf("last_updated_time_usecs=gt=%d", nanos))
+	// TODO: How to query the latest tasks based ob Status or Time created?
 	return c.List(ctx, &schema.DSMetadata{
 		SortAttribute: "start_time",
 		SortOrder:     "ASCENDING",
