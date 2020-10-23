@@ -53,8 +53,9 @@ func (c *ImageClient) GetByName(ctx context.Context, name string) (*schema.Image
 // List returns a list of images
 func (c *ImageClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.ImageListIntent, error) {
 	response := new(schema.ImageListIntent)
-	err := c.client.listHelper(ctx, imageListPath, opts, response)
+	err := c.client.requestHelper(ctx, imageListPath, http.MethodPost, opts, response)
 	return response, err
+
 }
 
 // All returns all images

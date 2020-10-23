@@ -51,8 +51,9 @@ func (c *ProjectClient) GetByName(ctx context.Context, name string) (*schema.Pro
 // List returns a list of projects
 func (c *ProjectClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.ProjectListIntent, error) {
 	response := new(schema.ProjectListIntent)
-	err := c.client.listHelper(ctx, projectListPath, opts, response)
+	err := c.client.requestHelper(ctx, projectListPath, http.MethodPost, opts, response)
 	return response, err
+
 }
 
 // All returns all projects

@@ -57,7 +57,7 @@ func (c *ClusterClient) GetByName(ctx context.Context, name string) (*schema.Clu
 // List returns a list of clusters for a specific page.
 func (c *ClusterClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.ClusterListIntent, error) {
 	response := new(schema.ClusterListIntent)
-	err := c.client.listHelper(ctx, clusterListPath, opts, response)
+	err := c.client.requestHelper(ctx, clusterListPath, http.MethodPost, opts, response)
 	return response, err
 }
 

@@ -3,6 +3,7 @@ package nutanix
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/tecbiz-ch/nutanix-go-sdk/pkg/utils"
 	"github.com/tecbiz-ch/nutanix-go-sdk/schema"
@@ -50,8 +51,9 @@ func (c *CategoryClient) GetByName(ctx context.Context, name string) (*schema.Ca
 // List returns a list of all CategoryKeyStatus
 func (c *CategoryClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.CategoryKeyList, error) {
 	response := new(schema.CategoryKeyList)
-	err := c.client.listHelper(ctx, categoryListPath, opts, response)
+	err := c.client.requestHelper(ctx, categoryListPath, http.MethodPost, opts, response)
 	return response, err
+
 }
 
 // ListValues returns a list of schema.CategoryValueList

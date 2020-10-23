@@ -99,7 +99,7 @@ type ErrorResponse struct {
 	State       string            `json:"state"`
 }
 
-//ExecutionContext ...
+// ExecutionContext ...
 type ExecutionContext struct {
 	TaskUUID interface{} `json:"task_uuid,omitempty"`
 }

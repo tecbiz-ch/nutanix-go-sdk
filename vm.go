@@ -58,8 +58,50 @@ func (c *VMClient) GetByName(ctx context.Context, name string) (*schema.VMIntent
 // List returns a list of vms for a specific page.
 func (c *VMClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.VMListIntent, error) {
 	response := new(schema.VMListIntent)
-	err := c.client.listHelper(ctx, vmListPath, opts, response)
+	err := c.client.requestHelper(ctx, vmListPath, http.MethodPost, opts, response)
 	return response, err
+	/*
+		if response.Metadata.Length < response.Metadata.TotalMatches {
+			var wg sync.WaitGroup
+			responsechannel := make(chan *schema.VMListIntent, response.Metadata.TotalMatches/response.Metadata.Length+1)
+			errorchannel := make(chan error, response.Metadata.TotalMatches/response.Metadata.Length+1)
+			var i int64
+			for i = *opts.Length; i < response.Metadata.TotalMatches; i = i + *opts.Length {
+				wg.Add(1)
+				//pagedresponse := new(schema.VMListIntent)
+				go func(i int64) {
+					defer wg.Done()
+					pagedopts := schema.DSMetadata(*opts)
+					pagedopts.Offset = utils.Int64Ptr(i)
+					pagedresponse := new(schema.VMListIntent)
+					err := c.client.requestHelper(ctx, vmListPath, http.MethodPost, &pagedopts, pagedresponse)
+					if err != nil {
+						errorchannel <- err
+					}
+					responsechannel <- pagedresponse
+				}(i)
+
+			}
+
+			go func() {
+				wg.Wait()
+				close(responsechannel)
+				close(errorchannel)
+			}()
+
+			for item := range responsechannel {
+				response.Entities = append(response.Entities, item.Entities...)
+				response.Metadata.Length += item.Metadata.Length
+			}
+			for err := range errorchannel {
+				if err != nil {
+					return response, err
+				}
+			}
+
+		}
+		return response, err
+	*/
 }
 
 // All returns all vms

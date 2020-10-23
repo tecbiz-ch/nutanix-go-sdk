@@ -3,6 +3,7 @@ package nutanix
 import (
 	"context"
 	"fmt"
+	"net/http"
 
 	"github.com/tecbiz-ch/nutanix-go-sdk/pkg/utils"
 	"github.com/tecbiz-ch/nutanix-go-sdk/schema"
@@ -56,7 +57,7 @@ func (c *AvailabilityZoneClient) GetByName(ctx context.Context, name string) (*s
 // List returns a list of projects for a specific page.
 func (c *AvailabilityZoneClient) List(ctx context.Context, opts *schema.DSMetadata) (*schema.AvailabilityZoneListIntent, error) {
 	response := new(schema.AvailabilityZoneListIntent)
-	err := c.client.listHelper(ctx, availabilityZoneListPath, opts, response)
+	err := c.client.requestHelper(ctx, availabilityZoneListPath, http.MethodPost, opts, response)
 	return response, err
 }
 

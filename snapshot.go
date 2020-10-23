@@ -57,7 +57,7 @@ func (c *SnapshotClient) GetByUUID(ctx context.Context, uuid string, vm *schema.
 // GetByName retrieves an vm by its name. If the vm does not exist, nil is returned.
 func (c *SnapshotClient) GetByName(ctx context.Context, name string, vm *schema.VMIntent) (*v2.SnapshotSpec, error) {
 	_ = fmt.Sprintf(vmSnapshotv2SinglePath, vm.Metadata.UUID)
-	//filter := &v2.Metadata{FilterCriteria: utils.StringPtr(fmt.Sprintf("name==%s", name))}
+	// filter := &v2.Metadata{FilterCriteria: utils.StringPtr(fmt.Sprintf("name==%s", name))}
 	filter := &v2.Metadata{}
 
 	list, err := c.List(ctx, filter, vm)
@@ -128,13 +128,11 @@ func (c *SnapshotClient) Create(ctx context.Context, name string, vm *schema.VMI
 		return nil, err
 	}
 
-	req, err := c.client.NewV2PERequest(ctx, http.MethodPost, vm.Spec.ClusterReference.UUID, fmt.Sprintf(vmSnapshotv2VMSinglePath, vm.Metadata.UUID), bytes.NewReader(reqBodyData))
+	req, err := c.client.NewV2PERequest(ctx, http.MethodPost, vm.Spec.ClusterReference.UUID, vmSnapshotv2Path, bytes.NewReader(reqBodyData))
 	if err != nil {
 		return nil, err
 	}
-
 	response := new(v2.Task)
-
 	err = c.client.Do(req, &response)
 	if err != nil {
 		return nil, err
