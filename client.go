@@ -47,6 +47,7 @@ type Client struct {
 	Project          ProjectClient
 	VM               VMClient
 	Subnet           SubnetClient
+	Host             HostClient
 	Category         CategoryClient
 	Task             TaskClient
 	Snapshot         SnapshotClient
@@ -140,6 +141,7 @@ func NewClient(options ...ClientOption) *Client {
 	client.Subnet = SubnetClient{client: client}
 	client.Category = CategoryClient{client: client}
 	client.Task = TaskClient{client: client}
+	client.Host = HostClient{client: client}
 	client.Snapshot = SnapshotClient{client: client}
 	client.AvailabilityZone = AvailabilityZoneClient{client: client}
 	client.VMRecoveryPoint = VMRecoveryPointClient{client: client}
