@@ -83,6 +83,9 @@ type VMBootConfig struct {
 	// Indicates the order of device types in which VM should try to boot from. If boot device order is not provided the
 	// system will decide appropriate boot device order.
 	BootDeviceOrderList []string `json:"boot_device_order_list,omitempty"`
+
+	BootType            string     `json:"boot_type,omitempty"`
+	DataSourceReference *Reference `json:"data_source_reference,omitempty"`
 }
 
 // NutanixGuestToolsSpec Information regarding Nutanix Guest Tools.
