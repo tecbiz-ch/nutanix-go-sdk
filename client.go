@@ -53,6 +53,9 @@ type Client struct {
 	Snapshot         SnapshotClient
 	AvailabilityZone AvailabilityZoneClient
 	VMRecoveryPoint  VMRecoveryPointClient
+	VPC              VpcClient
+	FlotatingIP      FloatingIPClient
+	RoutingPolicy    RoutingPolicyClient
 }
 
 // Credentials needed username and password
@@ -145,6 +148,9 @@ func NewClient(options ...ClientOption) *Client {
 	client.Snapshot = SnapshotClient{client: client}
 	client.AvailabilityZone = AvailabilityZoneClient{client: client}
 	client.VMRecoveryPoint = VMRecoveryPointClient{client: client}
+	client.VPC = VpcClient{client: client}
+	client.FlotatingIP = FloatingIPClient{client: client}
+	client.RoutingPolicy = RoutingPolicyClient{client: client}
 	return client
 }
 
