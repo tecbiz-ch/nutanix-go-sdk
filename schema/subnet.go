@@ -8,6 +8,8 @@ type SubnetResources struct {
 
 	SubnetType string `json:"subnet_type,omitempty"`
 
+	VPCReference *Reference `json:"vpc_reference,omitempty"`
+
 	VlanID *int64 `json:"vlan_id,omitempty"`
 
 	VswitchName string `json:"vswitch_name,omitempty"`

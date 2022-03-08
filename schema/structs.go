@@ -558,18 +558,18 @@ type VMIntentResource struct {
 
 // PortRange represents Range of TCP/UDP ports.
 type PortRange struct {
-	EndPort *int64 `json:"end_port,omitempty"`
+	EndPort int64 `json:"end_port,omitempty"`
 
-	StartPort *int64 `json:"start_port,omitempty"`
+	StartPort int64 `json:"start_port,omitempty"`
 }
 
 // IPSubnet IP subnet provided as an address and prefix length.
 type IPSubnet struct {
 
 	// IPV4 address.
-	IP *string `json:"ip,omitempty"`
+	IP string `json:"ip,omitempty"`
 
-	PrefixLength *int64 `json:"prefix_length,omitempty"`
+	PrefixLength int64 `json:"prefix_length,omitempty"`
 }
 
 // NetworkRuleIcmpTypeCodeList ..
