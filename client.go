@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -212,7 +211,7 @@ func checkResponse(r *http.Response) error {
 		return nil
 	}
 
-	buf, err := ioutil.ReadAll(r.Body)
+	buf, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
 	}
@@ -221,7 +220,7 @@ func checkResponse(r *http.Response) error {
 		return fmt.Errorf("statusCode: %d, response: %s", r.StatusCode, string(buf))
 	}
 
-	data := ioutil.NopCloser(bytes.NewBuffer(buf))
+	data := io.NopCloser(bytes.NewBuffer(buf))
 
 	r.Body = data
 

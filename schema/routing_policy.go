@@ -82,7 +82,7 @@ type NetworkAddress struct {
 
 // RoutingPolicyAction Action
 //
-// Routing policy action
+// # Routing policy action
 //
 // swagger:model routing_policy_action
 type RoutingPolicyAction struct {
@@ -97,7 +97,7 @@ type RoutingPolicyAction struct {
 
 // ProtocolParameters IP protocol
 //
-// Routing policy IP protocol parameters
+// # Routing policy IP protocol parameters
 //
 // swagger:model protocol_parameters
 type ProtocolParameters struct {
@@ -137,7 +137,7 @@ type Icmp struct {
 
 // UDP UDP parameters
 //
-// UDP parameters to be matched in routing policy
+// # UDP parameters to be matched in routing policy
 //
 // swagger:model udp
 type UDP struct {
