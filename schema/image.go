@@ -34,6 +34,8 @@ type ImageResources struct {
 	// The source URI points at the location of a the source image which is used to create/update image.
 	SourceURI string `json:"source_uri,omitempty"`
 
+	InitialPlacementRefList []Reference `json:"initial_placement_ref_list,omitempty"`
+
 	// The image version
 	Version *ImageVersionResources `json:"version,omitempty"`
 }
