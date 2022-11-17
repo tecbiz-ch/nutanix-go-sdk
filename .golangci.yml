@@ -29,23 +29,18 @@ output:
 
 linters:
   enable:
-    - deadcode
     - errcheck
     - goconst
     - goimports
     - gosimple
     - ineffassign
     - staticcheck
-    - structcheck
     - typecheck
     - unused
-    - varcheck
     - gofmt
     - govet
     - unconvert
-    - maligned
     - gocritic
     - bodyclose
-    - scopelint
     - nakedret
     - stylecheck

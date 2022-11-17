@@ -117,7 +117,7 @@ type VpcDefStatus struct {
 
 // VpcResourcesDefStatus VPC resources status
 //
-// VPC resources status
+// # VPC resources status
 //
 // swagger:model vpc_resources_def_status
 type VpcResourcesDefStatus struct {
