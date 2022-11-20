@@ -207,7 +207,7 @@ func (c *Client) Do(r *http.Request, v interface{}) error {
 }
 
 func checkResponse(r *http.Response) error {
-	if c := r.StatusCode; c >= 200 && c <= 299 && r.Request.Method == http.MethodDelete {
+	if c := r.StatusCode; c >= 200 && c <= 299 {
 		return nil
 	}
 
