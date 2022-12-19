@@ -20,6 +20,7 @@ const (
 	vmRevertPath     = vmSinglePath + "/revert"
 	vmPowerStatePath = vmSinglePath + "/set_power_state"
 	vmSnapshotPath   = vmSinglePath + "/snapshot"
+	vmDiskPath       = "/PrismGateway/services/rest/v2.0/virtual_disks?search_string=%s"
 )
 
 // VMClient is a client for the VM API.
@@ -53,6 +54,12 @@ func (c *VMClient) GetByName(ctx context.Context, name string) (*schema.VMIntent
 		return nil, fmt.Errorf("VM not found: %s", name)
 	}
 	return vms.Entities[0], err
+}
+
+func (c *VMClient) GetVMDiskByUUID(ctx context.Context, uuid string) (*schema.VirtualDiskResponse, error) {
+	response := new(schema.VirtualDiskResponse)
+	err := c.client.requestHelper(ctx, fmt.Sprintf(vmDiskPath, uuid), http.MethodGet, nil, response)
+	return response, err
 }
 
 // List returns a list of vms for a specific page.
