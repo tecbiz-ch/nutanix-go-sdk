@@ -20,7 +20,7 @@ const (
 	vmRevertPath     = vmSinglePath + "/revert"
 	vmPowerStatePath = vmSinglePath + "/set_power_state"
 	vmSnapshotPath   = vmSinglePath + "/snapshot"
-	vmDiskPath       = "/PrismGateway/services/rest/v2.0/virtual_disks?search_string=%s"
+	vmDiskPath       = "/virtual_disks?search_string=%s"
 )
 
 // VMClient is a client for the VM API.
@@ -58,7 +58,14 @@ func (c *VMClient) GetByName(ctx context.Context, name string) (*schema.VMIntent
 
 func (c *VMClient) GetVMDiskByUUID(ctx context.Context, uuid string) (*schema.VirtualDiskResponse, error) {
 	response := new(schema.VirtualDiskResponse)
-	err := c.client.requestHelper(ctx, fmt.Sprintf(vmDiskPath, uuid), http.MethodGet, nil, response)
+	req, err := c.client.NewV2PCRequest(ctx, http.MethodGet, fmt.Sprintf(vmDiskPath, uuid), nil)
+	if err != nil {
+		return nil, err
+	}
+	err = c.client.Do(req, &response)
+	if err != nil {
+		return nil, err
+	}
 	return response, err
 }
 
