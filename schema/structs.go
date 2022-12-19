@@ -538,6 +538,33 @@ type VMListIntent struct {
 	Metadata *ListMetadata `json:"metadata,omitempty"`
 }
 
+type VirtualDisk struct {
+	VirtualDiskID         string      `json:"virtual_disk_id"`
+	UUID                  string      `json:"uuid"`
+	DeviceUUID            string      `json:"device_uuid"`
+	NutanixNfsfilePath    string      `json:"nutanix_nfsfile_path"`
+	DiskAddress           string      `json:"disk_address"`
+	AttachedVMID          string      `json:"attached_vm_id"`
+	AttachedVMUUID        string      `json:"attached_vm_uuid"`
+	AttachedVmname        string      `json:"attached_vmname"`
+	AttachedVolumeGroupID string      `json:"attached_volume_group_id"`
+	DiskCapacityInBytes   int64       `json:"disk_capacity_in_bytes"`
+	ClusterUUID           string      `json:"cluster_uuid"`
+	StorageContainerID    string      `json:"storage_container_id"`
+	StorageContainerUUID  string      `json:"storage_container_uuid"`
+	FlashModeEnabled      bool        `json:"flash_mode_enabled"`
+	DatasourceUUID        string      `json:"datasource_uuid"`
+	Stats                 interface{} `json:"stats"`
+}
+
+type VirtualDiskResponse struct {
+	Metadata struct {
+		GrandTotalEntities int `json:"grand_total_entities"`
+		TotalEntities      int `json:"total_entities"`
+	} `json:"metadata"`
+	Entities []VirtualDisk `json:"entities"`
+}
+
 type ListHelper struct {
 	APIVersion string `json:"api_version,omitempty"`
 
