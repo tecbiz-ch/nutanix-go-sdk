@@ -235,6 +235,9 @@ type VMResources struct {
 	// VM's hardware clock timezone in IANA TZDB format (America/Los_Angeles).
 	HardwareClockTimezone string `json:"hardware_clock_timezone,omitempty"`
 
+	// Machine type for the VM. Machine type Q35 is required for secure boot and does not support IDE disks.
+	MachineType *string `json:"machine_type,omitempty"`
+
 	// Memory size in MiB.
 	MemorySizeMib int64 `json:"memory_size_mib,omitempty"`
 
